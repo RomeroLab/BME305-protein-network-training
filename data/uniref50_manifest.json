@@ -1,0 +1,10 @@
+{
+  "retrieved_utc": "2026-10-08T14:49:51.725698+00:00",
+  "query": "identity:0.5 AND length:[40 TO 120]",
+  "source": "https://rest.uniprot.org/uniref/search",
+  "uniprot_release": "2026_03",
+  "pages_read": 13,
+  "records": 4000,
+  "selection": "Convenience sample from API search pages; exclude ambiguous residues, annotated fragments and exact duplicate sequences; sample 4000 with seed 7. Not a uniform sample of UniRef50.",
+  "sha256": "7718f7ac9a7ab9591f5c2a227088dba63324c6e35614e6349201f89025f267ef"
+}
