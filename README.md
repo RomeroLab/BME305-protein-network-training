@@ -1,6 +1,6 @@
 # BME305: training protein neural networks
 
-Two Colab notebooks introduce supervised and self-supervised learning with protein sequences. Students work directly with model definitions, losses, optimizers, and PyTorch Lightning training steps, then inspect learning curves and held-out predictions.
+Train neural networks to learn from protein sequences. These two dry labs cover supervised prediction of protein function and self-supervised prediction of masked amino acids. Work through the model definitions and training steps, then inspect learning curves and predictions on held-out sequences.
 
 ## Notebooks
 
@@ -11,34 +11,32 @@ Two Colab notebooks introduce supervised and self-supervised learning with prote
 
 ## Getting started
 
-Open a notebook in Colab, select **Runtime → Change runtime type → T4 GPU**, and run the cells in order. Use **File → Save a copy in Drive** to keep your edits and outputs. Each notebook installs Lightning; Colab supplies PyTorch and the other standard packages. No pretrained model downloads are needed.
+Open a notebook in Colab, select **Runtime → Change runtime type → T4 GPU**, and run the cells in order. Use **File → Save a copy in Drive** to keep your edits and outputs.
 
-Both notebooks show the model architecture, forward pass, loss calculation, and optimizer. Lightning handles backpropagation and the training loop. Training data update weights, validation data select a checkpoint, and test data evaluate the selected model. Saved models include token definitions and hyperparameters.
+Each notebook shows the model architecture, forward pass, loss, and optimizer. PyTorch Lightning handles backpropagation and the training loop. Training data update the weights, validation data select a checkpoint, and test data evaluate the selected model.
 
 ## Sequence-to-function regression
 
-This exercise adapts [RomeroLab/Seq2FxnNN](https://github.com/RomeroLab/Seq2FxnNN), using its GB1 variant dataset and a smaller, modern Lightning implementation. It retains the embedding → convolution → regression approach, with a learned amino acid embedding instead of the original physicochemical initialization.
+Learn a mapping from GB1 amino acid sequences to measured functional scores. The network combines a learned amino acid embedding, two convolutional layers, and a regression head.
 
-The notebook samples 12,000 variants from the pinned source dataset and uses a reproducible 80/10/10 split. Score normalization uses only the selected training data. Students compare learning curves, test-set predictions, and a training-mean baseline, then vary training fraction or model settings.
-
-GB1 variant labels omit the initial methionine of the full reference sequence. The conversion accounts for that indexing. Scores reflect the binding-selection experiment; the task is regression of the supplied score. Random held-out variants assess interpolation within this local sequence landscape, rather than transfer to new proteins.
+Use 12,000 variants with an 80/10/10 training, validation, and test split. Inspect training and validation loss, compare test predictions with measured scores, and assess improvement over a baseline that predicts the training-set mean. Explore how training-set size, model capacity, and learning rate affect performance.
 
 ## Masked-language training
 
-The dataset contains 4,000 natural UniRef50 cluster representatives, 40–120 residues long. The saved snapshot excludes ambiguous amino acids, annotated fragments, and exact duplicate sequences. [The provenance record](data/uniref50_manifest.json) gives the source query, retrieval date, UniProt release, filtering, and checksum. It is a convenience sample of short sequences, not a uniform sample of UniRef50.
+Learn to predict hidden amino acids from their sequence context using 4,000 natural UniRef50 representatives, 40–120 residues long. The model combines amino acid and position embeddings with PyTorch's built-in transformer encoder.
 
-The model uses `nn.Embedding`, `nn.TransformerEncoderLayer`, and `nn.TransformerEncoder`. Real residues attend bidirectionally; padding is excluded from attention and loss. Fifteen percent of real positions are selected, with the BERT-style 80% mask / 10% random / 10% unchanged corruption scheme. Training masks change each batch; validation and test masks are fixed. Independently initialized encoder layers avoid starting with identical cloned weights.
+Select 15% of real residues for prediction. Replace 80% of those with `[MASK]`, replace 10% with a random amino acid, and leave 10% unchanged. Padding is excluded from attention and loss. Training masks change each batch; validation and test masks stay fixed.
 
-Evaluation compares the transformer with amino acid frequencies estimated from the training set. It reports cross-entropy, selected-residue accuracy, and accuracy where the input was replaced by `[MASK]`. Students inspect one held-out masked residue and compare the full amino acid distributions.
+Compare test predictions with an amino acid frequency baseline, then inspect the predicted distribution at one masked residue. Explore how masking, model size, and learning rate affect learning.
 
-This model illustrates protein language-model training from scratch on a small dataset. It does not reproduce the capabilities of a large pretrained PLM. Different UniRef50 representatives can still be evolutionarily related; a research evaluation would require a more deliberate homology-aware split and broader sequence coverage.
+## Interpreting results
 
-## Data and sources
+The GB1 split evaluates predictions within one protein's sequence landscape. The UniRef50 subset provides a sample of short natural proteins. When interpreting performance, consider the diversity of training sequences and how closely the test sequences are related to them.
 
-- [Seq2FxnNN](https://github.com/RomeroLab/Seq2FxnNN), source revision `688d7bcf1455b9c7fd5fa7cda36089a340beca3d`, provides the GB1 dataset and original teaching example.
-- [UniRef](https://www.uniprot.org/help/uniref) provides natural sequence representatives. UniProt data are distributed under [CC BY 4.0](https://www.uniprot.org/help/license); retain the attribution and provenance when reusing the subset.
-- [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html), [PyTorch TransformerEncoder](https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerEncoder.html), and [BERT](https://arxiv.org/abs/1810.04805) describe the training framework, encoder components, and masking objective.
+Use validation data to compare settings, and reserve test data for the final evaluation. Save the selected model and token definitions for later experiments.
 
-## Development
+## References
 
-The notebooks use Lightning 2.5.5 and Colab's installed PyTorch. To check masking, padding invariance, and the sequence subset without running training, install Lightning and run `python -m unittest -v test_notebooks`.
+- [GB1 dataset](https://github.com/RomeroLab/Seq2FxnNN).
+- [UniRef](https://www.uniprot.org/help/uniref) and [sequence dataset details](data/uniref50_manifest.json). UniProt data are distributed under [CC BY 4.0](https://www.uniprot.org/help/license).
+- [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html), [PyTorch TransformerEncoder](https://docs.pytorch.org/docs/stable/generated/torch.nn.TransformerEncoder.html), and [BERT](https://arxiv.org/abs/1810.04805).
